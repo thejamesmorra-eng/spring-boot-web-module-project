@@ -29,12 +29,8 @@ public class PetController {
 
     @DeleteMapping("/{petId}")
     public ResponseEntity<Void> deletePet(@PathVariable Long userId, @PathVariable Long petId) {
+        log.info("Get request for delete pet with id: {}, from user with id: {}", petId, userId);
         petService.deletePet(userId, petId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
-
-    @GetMapping("/{petId}")
-    public PetDto getPetById(@PathVariable Long petId) {
-        return null;
     }
 }

@@ -29,12 +29,13 @@ public class UserService {
     }
 
     public UserDto updateUser(Long id, UserDto userDto) {
+        UserDto userToUpdate = getUserById(id);
         UserDto updatedUser = new UserDto(
                 id,
                 userDto.getName(),
                 userDto.getEmail(),
                 userDto.getAge(),
-                userDto.getPets());
+                userToUpdate.getPets());
         users.put(id, updatedUser);
         return updatedUser;
     }
@@ -47,5 +48,9 @@ public class UserService {
     public UserDto getUserById(Long id) {
         return Optional.ofNullable(users.get(id))
                 .orElseThrow(() -> new UserNotFoundException("User with id: %s is not found".formatted(id)));
+    }
+
+    public List<UserDto> getAllUsers() {
+        return users.values().stream().toList();
     }
 }

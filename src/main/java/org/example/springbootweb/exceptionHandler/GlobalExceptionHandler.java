@@ -1,5 +1,6 @@
 package org.example.springbootweb.exceptionHandler;
 
+import org.example.springbootweb.exceptionHandler.exceptions.AccessDeniedException;
 import org.example.springbootweb.exceptionHandler.exceptions.PetNotFoundException;
 import org.example.springbootweb.exceptionHandler.exceptions.UserNotFoundException;
 import org.slf4j.Logger;
@@ -9,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
@@ -26,7 +28,7 @@ public class GlobalExceptionHandler {
                 .getFieldErrors()
                 .stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .collect(Collectors.joining(","));
+                .collect(Collectors.joining(", "));
 
         ErrorMessageResponse errorMessageResponse = new ErrorMessageResponse(
                 HttpStatus.BAD_REQUEST.value(),
@@ -42,7 +44,7 @@ public class GlobalExceptionHandler {
 
         ErrorMessageResponse errorMessageResponse = new ErrorMessageResponse(
                 HttpStatus.NOT_FOUND.value(),
-                "Resource not found",
+                "Resource (user) not found",
                 e.getMessage(),
                 LocalDateTime.now());
 
@@ -55,11 +57,37 @@ public class GlobalExceptionHandler {
 
         ErrorMessageResponse errorMessageResponse = new ErrorMessageResponse(
                 HttpStatus.NOT_FOUND.value(),
-                "Resource not found",
+                "Resource (pet) not found",
                 e.getMessage(),
                 LocalDateTime.now());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessageResponse);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorMessageResponse> handleAccessDeniedException(AccessDeniedException e) {
+        log.error("Got user and pet relations exception ", e);
+
+        ErrorMessageResponse errorMessageResponse = new ErrorMessageResponse(
+                HttpStatus.FORBIDDEN.value(),
+                "User and pet relations exception",
+                e.getMessage(),
+                LocalDateTime.now());
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorMessageResponse);
+    }
+
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<ErrorMessageResponse> handleNotFound(NoHandlerFoundException e) {
+        log.info("Got handler not found: {}", e.getRequestURL());
+
+        ErrorMessageResponse response = new ErrorMessageResponse(
+                HttpStatus.NOT_FOUND.value(),
+                "Resource not found",
+                "The requested URL was not found",
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
     @ExceptionHandler(Exception.class)

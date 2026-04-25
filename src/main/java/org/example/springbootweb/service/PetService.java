@@ -25,12 +25,13 @@ public class PetService {
     }
 
     public PetDto createPet(Long userId, PetDto petDto) {
+        UserDto userDto = userService.getUserById(userId);
         PetDto newPetDto = new PetDto(
                 ++nextId,
                 petDto.getName(),
-                petDto.getUserId());
+                userDto.getId());
         pets.put(newPetDto.getId(), newPetDto);
-        userService.getUserById(userId).getPets().add(petDto);
+        userDto.getPets().add(newPetDto);
         return newPetDto;
     }
 
@@ -38,7 +39,7 @@ public class PetService {
         UserDto userDto = userService.getUserById(userId);
         PetDto petDto = getPetById(petId);
         if (!Objects.equals(userDto.getId(), petDto.getUserId())) {
-            throw new AccessDeniedException("User %s does not own pet %s".formatted(userId, petId));
+            throw new AccessDeniedException("User with id: %s does not own pet with id: %s".formatted(userId, petId));
         }
         userDto.getPets().remove(petDto);
         pets.remove(petId);
