@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
@@ -77,22 +76,9 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorMessageResponse);
     }
 
-    @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<ErrorMessageResponse> handleNotFound(NoHandlerFoundException e) {
-        log.info("Got handler not found: {}", e.getRequestURL());
-
-        ErrorMessageResponse response = new ErrorMessageResponse(
-                HttpStatus.NOT_FOUND.value(),
-                "Resource not found",
-                "The requested URL was not found",
-                LocalDateTime.now()
-        );
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-    }
-
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorMessageResponse> handleException(Exception e) {
-        log.error("Got server exception ", e);
+        log.error("Got server exception: {}", e.getMessage(), e);
 
         ErrorMessageResponse errorMessageResponse = new ErrorMessageResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
