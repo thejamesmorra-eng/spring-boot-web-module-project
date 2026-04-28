@@ -2,8 +2,10 @@ package org.example.springbootweb.controller;
 
 import org.example.springbootweb.exceptionHandler.exceptions.UserNotFoundException;
 import org.example.springbootweb.model.PetDto;
+import org.example.springbootweb.model.UserDto;
 import org.example.springbootweb.service.PetService;
 import org.example.springbootweb.service.UserService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -12,8 +14,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.Collections;
+import java.util.List;
+
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -52,9 +58,9 @@ class PetControllerTest {
 
         PetDto petDtoResponse = objectMapper.readValue(createdPetDto, PetDto.class);
 
-        org.junit.jupiter.api.Assertions.assertEquals(10L, petDtoResponse.getId());
-        org.junit.jupiter.api.Assertions.assertEquals(petDto.getName(), petDtoResponse.getName());
-        org.junit.jupiter.api.Assertions.assertEquals(userId, petDtoResponse.getUserId());
+        Assertions.assertEquals(10L, petDtoResponse.getId());
+        Assertions.assertEquals(petDto.getName(), petDtoResponse.getName());
+        Assertions.assertEquals(userId, petDtoResponse.getUserId());
     }
 
     @Test
@@ -74,12 +80,32 @@ class PetControllerTest {
         PetDto petDto = new PetDto(null, "Buddy", null);
         String petDtoJson = objectMapper.writeValueAsString(petDto);
 
-        when(userService.getUserById(notExistentId))
+        when(petService.createPet(eq(notExistentId), any(PetDto.class)))
                 .thenThrow(new UserNotFoundException("User not found with id: " + notExistentId));
 
         mockMvc.perform(post("/api/users/{userId}/pets", notExistentId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(petDtoJson))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldDeletePetFromUserPets() throws Exception {
+        Long petId = 1L;
+        Long userId = 1L;
+
+        PetDto petDto = new PetDto(petId, "Buddy", userId);
+        UserDto userDto = new UserDto(userId, "Ivan", "email@email.ru", 27, List.of(petDto));
+
+        when(userService.getUserById(userId)).thenReturn(userDto);
+
+        mockMvc.perform(delete("/api/users/{userId}/pets/{petId}", userId, petId))
+                .andExpect(status().isNoContent());
+
+        UserDto userAfterDelete = new UserDto(userId, "Ivan", "email", 27, Collections.emptyList());
+        when(userService.getUserById(userId)).thenReturn(userAfterDelete);
+
+        UserDto actualUser = userService.getUserById(userId);
+        Assertions.assertEquals(0, actualUser.getPets().size());
     }
 }

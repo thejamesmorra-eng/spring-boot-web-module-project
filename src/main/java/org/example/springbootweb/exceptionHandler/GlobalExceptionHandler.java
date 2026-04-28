@@ -34,6 +34,7 @@ public class GlobalExceptionHandler {
                 "Validation error",
                 detailedMessage,
                 LocalDateTime.now());
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessageResponse);
     }
 
