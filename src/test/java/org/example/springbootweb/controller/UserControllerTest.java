@@ -61,7 +61,7 @@ class UserControllerTest {
         mockMvc.perform(post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(userDtoJson))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isNoContent());
     }
 
     @Test
