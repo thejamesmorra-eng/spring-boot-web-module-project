@@ -56,4 +56,9 @@ public class UserController {
         List<UserDto> users = userService.getAllUsers();
         return ResponseEntity.status(HttpStatus.OK).body(users);
     }
+
+    @GetMapping("/health")
+    public ResponseEntity<String> checkHealth() {
+        return ResponseEntity.ok("Health check succsessful");
+    }
 }
